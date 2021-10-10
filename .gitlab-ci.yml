@@ -1,0 +1,27 @@
+#cenk
+image: docker
+
+services:
+  - docker:dind
+
+stages:
+  - test
+  - deploy
+
+test:
+  stage: test
+  image: golang:latest
+  script:
+    - go test ./... -v -coverprofile .coverage.txt
+
+deploy:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:latest
+  script:
+    - docker stop todolist-golang
+    - docker container rm todolist-golang
+    - docker rmi todolist-golang:prod
+    - docker build -t todolist-golang:prod .
+    - docker run -d -p 9000:9000 --name todolist-golang todolist-golang:prod
